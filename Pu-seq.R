@@ -9,7 +9,9 @@ moving.ave <- function(data, n){
     d.data <- d.data[!is.nan(d.data)] # exluding "NaN"
     r[i]=mean(d.data)
   }
-  (r)
+ 
+  (ifelse(is.na(r), 0, r))
+
 }
 
 Closeori<-function(pos, bin){
@@ -46,7 +48,7 @@ Closeori<-function(pos, bin){
 }
 
 orieff<-function(close, ratio, pos){
-  #tableclose=peak positions from diff, ratio=pol usage ratio, pos=all position)
+  
   maxpos<-c(match(close,pos))
   
   ratiomin<-c(tail((which(diff(c(FALSE,diff(ratio[1:maxpos[1]])>0,TRUE))>0)),n=1))
@@ -61,7 +63,7 @@ orieff<-function(close, ratio, pos){
   for (i in 1:(length(maxpos)-1)){
     ratiomax<-c(ratiomax,(-1+maxpos[i]+head((which(diff(c(TRUE,diff(ratio[maxpos[i]:maxpos[i+1]])>=0,FALSE))<0)),n=1)))
   }
-  ratiomax<-c(ratiomax, (-1+maxpos[length(maxpos)]+(head((which(diff(c(TRUE,diff(ratio[maxpos[i]:maxpos[i+1]])>=0,FALSE))<0)),n=1))))
+  ratiomax<-c(ratiomax, (-1+maxpos[length(maxpos)]+head((which(diff(c(TRUE,diff(ratio[maxpos[length(maxpos)]:length(ratio)])>=0,FALSE))<0)),n=1)))
   #which(diff(c(TRUE,diff(x)>=0,FALSE))<0)
   
   orieff<-c((ratio[ratiomax]-ratio[ratiomin])*100)
@@ -69,6 +71,7 @@ orieff<-function(close, ratio, pos){
   
   return(oriefftable)
 }
+
 
 Findlocalmax<-function(diffdata,position,percentile){
   
@@ -219,13 +222,18 @@ orieff_merge<-function(orieff_ef, orieff_ef_pos, orieff_dr, orieff_dr_pos,chro,b
         
       } 
       chromosome<-rep(chro,length(valuepos))
-      orilist<-cbind(chromosome,valuepos,round(value,3))
+        
+
+      if(length(value)>0){value=round(value,3)}
+      orilist<-cbind(chromosome,valuepos,value)
       colnames(orilist)<-c("chromosome","maxpos","efficiency")
     }
   }else if(length(efunpaired)==0 | length(drunpaired)==0){
     
     chromosome<-rep(chro,length(valuepos))
-    orilist<-cbind(chromosome,valuepos,round(value,3))
+    
+    if(length(value)>0){value=round(value,3)}
+    orilist<-cbind(chromosome,valuepos,value)
     colnames(orilist)<-c("chromosome","maxpos","efficiency")}
   
   return(orilist) 
@@ -426,7 +434,7 @@ for (chromo in chromos1){
   ex=is.na(as.numeric(orilist.chr[,3])) | as.numeric(orilist.chr[,3])==0 
   orilist<-rbind(orilist,orilist.chr[!ex,])
 
-  cat(nrow(orilist), "origins are detected.\n\n")
+  cat(nrow(orilist.chr[!ex,]), "origins are detected.\n\n")
   
 }
 
